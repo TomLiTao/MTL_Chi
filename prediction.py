@@ -7,6 +7,7 @@ import os, joblib
 from copy import deepcopy
 from model.utils import load_NN
 from model.modelstructure import Chi_Model
+from model.load_data import DataLoader
 from sklearn.metrics import confusion_matrix
 from sklearn.model_selection import GroupKFold, KFold, GroupShuffleSplit
 
@@ -40,7 +41,9 @@ cvtestidx = 1 # index of the set of randomly split test data stored in test_cv_i
 test_ratio = 1 # ratio of test data in the whole dataset
 temp_dim = 1 # 1 or 2
 n_CV_val = 5 # number of cross-validation folds
-#direction to load input data
+
+import pandas as pd
+from copy import deepcopy
 dir_load = 'sample_data'
 
 data_PI = pd.read_csv(f'{dir_load}/data_PI.csv', index_col=0)
@@ -61,6 +64,8 @@ with open(f'{dir_load}/test_cv_idx.pkl', 'rb') as f:
     tmp = pk.load(f)
 tmp_idx_trs = deepcopy(tmp['train'])
 tmp_idx_vals = deepcopy(tmp['test'])
+
+    
 
 dname_rd = np.concatenate([dname_p_rd, dname_s_rd])
 desc_s0_s = deepcopy(desc_PI)
