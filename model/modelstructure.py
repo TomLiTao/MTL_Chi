@@ -4,6 +4,10 @@ from copy import deepcopy
 import numpy as np
 from xenonpy.model import SequentialLinear
 
+# fixed linearly reducing pyramid shape
+def neuron_vector(nL, in_neu, out_neu):
+    return [int(x) for x in np.rint(np.linspace(in_neu, out_neu, nL+2))[1:-1]]
+
 # Define the model class based on temp_dim
 class Chi_Model(nn.Module):
     def __init__(self, sp_mdl_p, sp_mdl_s, dim_ur, temp_dim):
