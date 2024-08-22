@@ -13,3 +13,12 @@ temp_numpy = np.random.rand(num_samples, temp_dim).astype(np.float32)  # Tempera
 x1 = torch.tensor(x1_numpy, dtype=torch.float32)
 x2 = torch.tensor(x2_numpy, dtype=torch.float32)
 temp = torch.tensor(temp_numpy, dtype=torch.float32)
+
+# Make predictions
+with torch.no_grad():  # Disable gradient calculation
+    output = model(x1, x2, temp)
+
+# Print output shape
+print("Output shape:", output.shape)
+# Process output
+print("Model output:", output)
