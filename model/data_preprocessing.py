@@ -82,6 +82,91 @@ class DescriptorProcessor:
         self.desc_s_s[self.dname_rd] = self.x_scaler.transform(self.desc_s_s[self.dname_rd])
         # Transform the descriptors in the Chi dataset using the fitted scaler
         self.desc_t_s[self.dname_rd] = self.x_scaler.transform(self.desc_t_s[self.dname_rd])
+        
+
+class YValueProcessor:
+    def __init__(self, data_loader: DataLoader):
+        """
+        Initialize the YValueProcessor with an instance of DataLoader.
+
+        Parameters:
+        data_loader (DataLoader): An instance of the DataLoader class.
+        """
+        self.data_loader = data_loader
+
+        # Initialize attributes for scaled y values
+        self.y_s0 = None
+        self.y_s = None
+        self.y_t = None
+        self.y_s_s = None
+        self.y_t_s = None
+
+    def process_y_values(self):
+        """
+        Process and scale the y values.
+        """
+        # Extract and rename y values
+        self.y_s0 = self.data_loader.data_PI[['soluble']].rename(columns={'soluble': 'y'})
+        self.y_s = self.data_loader.data_COSMO[['chi']].rename(columns={'chi': 'y'})
+        self.y_t = self.data_loader.data_Chi[['chi']].rename(columns={'chi': 'y'})
+
+        # Scale the y values
+        ys_scaler = Scaler().standard()
+        _ = ys_scaler.fit(self.y_s.loc[self.data_loader.idx_split_s['idx_tr']].reset_index(drop=True))
+        self.y_s_s = ys_scaler.transform(self.y_s)
+
+        yt_scaler = Scaler().standard()
+        _ = yt_scaler.fit(self.y_t.loc[self.data_loader.idx_split_t['idx_tr']].reset_index(drop=True))
+        self.y_t_s = yt_scaler.transform(self.y_t)
+
+class TemperatureProcessor:
+    def __init__(self, data_loader: DataLoader, temp_dim: int):
+        """
+        Initialize the TemperatureProcessor with an instance of DataLoader and temperature dimension.
+
+        Parameters:
+        data_loader (DataLoader): An instance of the DataLoader class.
+        temp_dim (int): The dimension of the temperature transformation (1 or 2).
+        """
+        self.data_loader = data_loader
+        self.temp_dim = temp_dim
+
+        # Initialize attributes for scaled temperature values
+        self.temp_s = None
+        self.temp_t = None
+        self.temp_s_s = None
+        self.temp_t_s = None
+
+    def process_temperatures(self):
+        """
+        Process and scale the temperature values.
+        """
+        # Transform temperature variables based on the specified dimension
+        if self.temp_dim == 1:
+            self.temp_s = 1 / (self.data_loader.data_COSMO[['temp']] + 273.15)
+            self.temp_s.columns = ['T1']
+            self.temp_t = 1 / (self.data_loader.data_Chi[['temp']] + 273.15)
+            self.temp_t.columns = ['T1']
+        elif self.temp_dim == 2:
+            self.temp_s = pd.concat([
+                1 / (self.data_loader.data_COSMO[['temp']] + 273.15),
+                (self.data_loader.data_COSMO[['temp']] + 273.15) ** -2
+            ], axis=1)
+            self.temp_s.columns = ['T1', 'T2']
+            self.temp_t = pd.concat([
+                1 / (self.data_loader.data_Chi[['temp']] + 273.15),
+                (self.data_loader.data_Chi[['temp']] + 273.15) ** -2
+            ], axis=1)
+            self.temp_t.columns = ['T1', 'T2']
+
+        # Scale the temperature variables
+        tempS_scaler = Scaler().standard()
+        _ = tempS_scaler.fit(self.temp_s.loc[self.data_loader.idx_split_s['idx_tr'], :])
+        self.temp_s_s = tempS_scaler.transform(self.temp_s)
+
+        tempT_scaler = Scaler().standard()
+        _ = tempT_scaler.fit(self.temp_t.loc[self.data_loader.idx_split_t['idx_tr'], :])
+        self.temp_t_s = tempT_scaler.transform(self.temp_t)
 
 # Example usage
 if __name__ == "__main__":
@@ -106,8 +191,19 @@ if __name__ == "__main__":
     descriptor_scaler.filter_constant_descriptors()
     descriptor_scaler.transform_descriptors()
     descriptor_scaler.filter_constant_descriptors()
+    
+    # Initialize and use YValueProcessor
+    y_processor = YValueProcessor(data_loader)
+    y_processor.process_y_values()
+    
+        # Initialize and use TemperatureProcessor
+    temp_dim = 1  # or 2, depending on the desired temperature transformation
+    temp_processor = TemperatureProcessor(data_loader, temp_dim)
+    temp_processor.process_temperatures()
 
-    # Access the transformed descriptors
-    print(descriptor_scaler.desc_s0_s.head())
-    print(descriptor_scaler.desc_s_s.head())
-    print(descriptor_scaler.desc_t_s.head())
+    # Access the processed and scaled data
+    print(y_processor.y_s0.head())
+    print(y_processor.y_s_s.head())
+    print(y_processor.y_t_s.head())
+    print(temp_processor.temp_s_s.head())
+    print(temp_processor.temp_t_s.head())
