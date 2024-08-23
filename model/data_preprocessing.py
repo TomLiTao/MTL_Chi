@@ -5,7 +5,7 @@ from xenonpy.datatools.transform import Scaler
 import os
 from load_data import DataLoader
 
-class DescriptorScaler:
+class DescriptorProcessor:
     def __init__(self, data_loader):
         """
         Initialize the DescriptorScaler with an instance of DataLoader.
@@ -22,6 +22,9 @@ class DescriptorScaler:
         self.desc_t_s = deepcopy(data_loader.desc_Chi)
         # Initialize a Scaler object with Yeo-Johnson transformation and standard scaling
         self.x_scaler = Scaler().yeo_johnson().standard()
+        # Initialize attributes for filtered descriptor names
+        self.dname_p = None
+        self.dname_s = None
 
     def fit_scaler(self):
         """
@@ -36,6 +39,38 @@ class DescriptorScaler:
         
         # Fit the scaler on the concatenated training descriptors, dropping duplicates
         _ = self.x_scaler.fit(tmp_desc.drop_duplicates(keep='first'))
+        
+        # Filter out constant descriptors
+        self.filter_constant_descriptors()
+
+    def filter_constant_descriptors(self):
+        """
+        Filter out constant descriptors from the datasets.
+        """
+        # Filter out constant descriptors for dname_rd
+        tmp_desc = pd.concat([
+            self.desc_s0_s.loc[self.data_loader.idx_split_s0['idx_tr'], self.dname_rd],
+            self.desc_s_s.loc[self.data_loader.idx_split_s['idx_tr'], self.dname_rd],
+            self.desc_t_s.loc[self.data_loader.idx_split_t['idx_tr'], self.dname_rd]
+        ], axis=0)
+        dname_rd_fil = tmp_desc.columns[tmp_desc.std() != 0]
+        dname_p_rd_fil = np.intersect1d(dname_rd_fil, self.data_loader.dname_p_rd)
+        dname_s_rd_fil = np.intersect1d(dname_rd_fil, self.data_loader.dname_s_rd)
+
+        # Filter out constant descriptors for dname_ff
+        dname_ff = np.concatenate([self.data_loader.dname_p_ff, self.data_loader.dname_s_ff])
+        tmp_desc = pd.concat([
+            self.desc_s0_s.loc[self.data_loader.idx_split_s0['idx_tr'], dname_ff],
+            self.desc_s_s.loc[self.data_loader.idx_split_s['idx_tr'], dname_ff],
+            self.desc_t_s.loc[self.data_loader.idx_split_t['idx_tr'], dname_ff]
+        ], axis=0)
+        dname_ff_fil = tmp_desc.columns[tmp_desc.std() != 0]
+        dname_p_ff_fil = np.intersect1d(dname_ff_fil, self.data_loader.dname_p_ff)
+        dname_s_ff_fil = np.intersect1d(dname_ff_fil, self.data_loader.dname_s_ff)
+
+        # Combine filtered descriptors
+        self.dname_p = np.concatenate([dname_p_ff_fil, dname_p_rd_fil])
+        self.dname_s = np.concatenate([dname_s_ff_fil, dname_s_rd_fil])
 
     def transform_descriptors(self):
         """
@@ -65,8 +100,8 @@ if __name__ == "__main__":
     data_loader.idx_split_s = data_loader.split_cosmo(data_loader.idx_split_t)
     data_loader.idx_split_s0 = data_loader.split_pi(data_loader.idx_split_t)
 
-    # Initialize and use DescriptorScaler
-    descriptor_scaler = DescriptorScaler(data_loader)
+    # Initialize and use DescriptorProcessor
+    descriptor_scaler = DescriptorProcessor(data_loader)
     descriptor_scaler.fit_scaler()
     descriptor_scaler.transform_descriptors()
 
