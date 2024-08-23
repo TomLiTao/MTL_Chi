@@ -2,8 +2,8 @@ import numpy as np
 import pandas as pd
 from copy import deepcopy
 from xenonpy.datatools.transform import Scaler
-import os
-from load_data import DataLoader
+from .load_data import DataLoader
+from sklearn.model_selection import GroupKFold
 
 class DescriptorProcessor:
     def __init__(self, data_loader):
@@ -167,43 +167,56 @@ class TemperatureProcessor:
         tempT_scaler = Scaler().standard()
         _ = tempT_scaler.fit(self.temp_t.loc[self.data_loader.idx_split_t['idx_tr'], :])
         self.temp_t_s = tempT_scaler.transform(self.temp_t)
+        
+class GroupKFoldSplitter:
+    def __init__(self, data, target_column, group_column, idx_split, n_splits, random_seed=0):
+        """
+        Initialize the GroupKFoldSplitter with the necessary parameters.
 
-# Example usage
-if __name__ == "__main__":
-    # Assuming DataLoader is already defined and data is loaded
-    dir_load = os.path.join(os.getcwd(), 'sample_data')
-    test_ratio = 0.2  # Set the desired test ratio
-    cvtestidx = 1     # Set the desired cross-validation index
+        Parameters:
+        data (pd.DataFrame): The input data containing the target and group columns.
+        target_column (str): The name of the target column.
+        group_column (str): The name of the group column.
+        idx_split (list): The indices for the training data.
+        n_splits (int): The number of cross-validation splits.
+        random_seed (int): The random seed for reproducibility (default is 0).
+        """
+        self.data = data
+        self.target_column = target_column
+        self.group_column = group_column
+        self.idx_split = idx_split
+        self.n_splits = n_splits
+        self.random_seed = random_seed
+        self.idx_trs = []
+        self.idx_vals = []
 
-    data_loader = DataLoader(dir_load, test_ratio, cvtestidx)
-    data_loader.load_data()
-    data_loader.load_descriptions()
-    data_loader.load_indices()
+    def split(self):
+        """
+        Perform the group-wise cross-validation split and store the indices.
+        """
+        # Extract the groups for the training data
+        poly_group = self.data.loc[self.idx_split, self.group_column]
 
-    # Perform data splitting
-    data_loader.idx_split_t = data_loader.split_exp_chi()
-    data_loader.idx_split_s = data_loader.split_cosmo(data_loader.idx_split_t)
-    data_loader.idx_split_s0 = data_loader.split_pi(data_loader.idx_split_t)
+        # Initialize GroupKFold
+        gp_cv = GroupKFold(n_splits=self.n_splits)
 
-    # Initialize and use DescriptorProcessor
-    descriptor_scaler = DescriptorProcessor(data_loader)
-    descriptor_scaler.fit_scaler()
-    descriptor_scaler.filter_constant_descriptors()
-    descriptor_scaler.transform_descriptors()
-    descriptor_scaler.filter_constant_descriptors()
-    
-    # Initialize and use YValueProcessor
-    y_processor = YValueProcessor(data_loader)
-    y_processor.process_y_values()
-    
-        # Initialize and use TemperatureProcessor
-    temp_dim = 1  # or 2, depending on the desired temperature transformation
-    temp_processor = TemperatureProcessor(data_loader, temp_dim)
-    temp_processor.process_temperatures()
+        # Set the random seed for reproducibility
+        np.random.seed(self.random_seed)
 
-    # Access the processed and scaled data
-    print(y_processor.y_s0.head())
-    print(y_processor.y_s_s.head())
-    print(y_processor.y_t_s.head())
-    print(temp_processor.temp_s_s.head())
-    print(temp_processor.temp_t_s.head())
+        # Perform the split and store the indices
+        for idx_tr, idx_val in gp_cv.split(self.data.loc[self.idx_split, self.target_column], groups=poly_group.to_list()):
+            self.idx_trs.append(self.data.loc[self.idx_split].iloc[idx_tr].index.values)
+            self.idx_vals.append(self.data.loc[self.idx_split].iloc[idx_val].index.values)
+
+    def get_splits(self):
+        """
+        Get the training and validation indices for each fold.
+
+        Returns:
+        tuple: A tuple containing two lists - training indices and validation indices.
+        """
+        return self.idx_trs, self.idx_vals
+
+
+
+
