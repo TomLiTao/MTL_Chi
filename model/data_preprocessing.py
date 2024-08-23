@@ -103,7 +103,9 @@ if __name__ == "__main__":
     # Initialize and use DescriptorProcessor
     descriptor_scaler = DescriptorProcessor(data_loader)
     descriptor_scaler.fit_scaler()
+    descriptor_scaler.filter_constant_descriptors()
     descriptor_scaler.transform_descriptors()
+    descriptor_scaler.filter_constant_descriptors()
 
     # Access the transformed descriptors
     print(descriptor_scaler.desc_s0_s.head())
