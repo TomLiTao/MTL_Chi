@@ -5,6 +5,7 @@ from model.data_preprocessing import DescriptorProcessor, YValueProcessor, Tempe
 from model.utils import load_NN
 import torch
 import os
+import pandas as pd
 
 # Example usage
 if __name__ == "__main__":
@@ -27,10 +28,6 @@ if __name__ == "__main__":
     descriptor_processor = DescriptorProcessor(data_loader)
     descriptor_processor.filter_constant_descriptors()  # Filter descriptors
 
-    # Initialize and use YValueProcessor
-    y_processor = YValueProcessor(data_loader)
-    y_processor.process_y_values()
-
     # Initialize and use TemperatureProcessor
     temp_dim = 1  # or 2, depending on the desired temperature transformation
     temp_processor = TemperatureProcessor(data_loader, temp_dim)
@@ -44,15 +41,9 @@ if __name__ == "__main__":
     model.eval()  # Set the model to evaluation mode
 
     # Prepare the input tensors
-    XT_P_TE = torch.tensor(descriptor_processor.desc_t_s.loc[data_loader.idx_split_t['idx_te'], descriptor_processor.dname_p].values.astype("float"), dtype=torch.float32, device=cuda_opt)
-    XT_S_TE = torch.tensor(descriptor_processor.desc_t_s.loc[data_loader.idx_split_t['idx_te'], descriptor_processor.dname_s].values.astype("float"), dtype=torch.float32, device=cuda_opt)
-    XT_T_TE = torch.tensor(temp_processor.temp_t_s.loc[data_loader.idx_split_t['idx_te'], :].values.astype("float"), dtype=torch.float32, device=cuda_opt)
-    
-    
-    # Print the first few entries of the tensors
-    print("First few entries of XT_P_TE:", XT_P_TE[:5])
-    print("First few entries of XT_S_TE:", XT_S_TE[:5])
-    print("First few entries of XT_T_TE:", XT_T_TE[:5])
+    XT_P_TE = torch.tensor(descriptor_processor.desc_t_s.loc[:, descriptor_processor.dname_p].values.astype("float"), dtype=torch.float32, device=cuda_opt)
+    XT_S_TE = torch.tensor(descriptor_processor.desc_t_s.loc[:, descriptor_processor.dname_s].values.astype("float"), dtype=torch.float32, device=cuda_opt)
+    XT_T_TE = torch.tensor(temp_processor.temp_t_s.values.astype("float"), dtype=torch.float32, device=cuda_opt)
 
     # Perform the forward pass to get predictions
     with torch.no_grad():  # Disable gradient calculation for inference
@@ -61,8 +52,11 @@ if __name__ == "__main__":
     # Convert the predictions to numpy array
     tmp_mat = py_target_test.to('cpu').detach().numpy()
 
-    # Print the predictions
-    print(tmp_mat)
+    # Convert the predictions to a pandas DataFrame
+    predictions_df = pd.DataFrame(tmp_mat)
+
+    # Save the predictions to a CSV file
+    predictions_df.to_csv('/home/lulab/Projects/ml_for_polymer/MTL_Chi/predictions.csv', index=False)
 
 
 
