@@ -1,9 +1,9 @@
 ## Code structure
 
-The main code for implementing predicition can be found in the model/ folder.
+The main code for implementing prediction can be found in the model/ folder.
 load_data contains the code for loading data from csv and pk files.
 data_preprocessing contains the normalization steps before input to the model.
-modelstrucutre contains the chi_model architecture.
+modelstructure contains the chi_model architecture.
 utils contains a few utility functions, including model saving and loading.
 
 ## Demo data
