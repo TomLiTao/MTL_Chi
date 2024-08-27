@@ -10,7 +10,7 @@ import pandas as pd
 # Example usage
 if __name__ == "__main__":
     # Assuming DataLoader is already defined and data is loaded
-    dir_load = os.path.join(os.getcwd(), 'sample_data')
+    dir_load = os.path.join(os.getcwd(), 'demo_data')
     test_ratio = 0.2  # Set the desired test ratio
     cvtestidx = 1     # Set the desired cross-validation index
 

@@ -112,31 +112,38 @@ class DataLoader:
         idx_split_s0 = {'idx_tr': self.data_PI.index[~idx], 'idx_te': self.data_PI.index[idx]}
         return idx_split_s0
     
+class DataLoader_pred(DataLoader):
+    def __init__(self, dir_load):
+        """
+        Initialize the DataLoader_pred with the directory to load data from.
+
+        Parameters:
+        dir_load (str): Directory path to load data from.
+        """
+        super().__init__(dir_load)
+        self.data = None
+        self.desc = None
+
+    def load_data(self):
+        """
+        Load the data from CSV files into pandas DataFrames.
+        """
+        self.data = pd.read_csv(f'{self.dir_load}/demo_smiles.csv', index_col=0)
+        self.desc = pd.read_csv(f'{self.dir_load}/demo_desc.csv', index_col=0)
+
 # Example usage
 if __name__ == "__main__":
-    dir_load = os.path.join(os.getcwd(), 'sample_data')
-    test_ratio = 0.2  # Set the desired test ratio
-    cvtestidx = 1     # Set the desired cross-validation index
+            dir_load = os.path.join(os.getcwd(), 'demo_data')
 
-    data_loader = DataLoader(dir_load, test_ratio, cvtestidx)
-    
-    data_loader.load_data()
-    data_loader.load_descriptions()
-    data_loader.load_indices()
-    
-    # Access the loaded data
-    print(data_loader.data_PI.head())
-    print(data_loader.dname_p_ff[:5])
-    print(data_loader.tmp_idx_trs[:1])
+            data_loader_pred = DataLoader_pred(dir_load)
+            
+            data_loader_pred.load_data()
+            data_loader_pred.load_descriptions()
+            
+            # Access the loaded data
+            print(data_loader_pred.data.head())
+            print(data_loader_pred.desc.head())
+            print(data_loader_pred.dname_p_ff[:5])
 
-    # Exp-Chi data splitting
-    idx_split_t = data_loader.split_exp_chi()
-    print(len(idx_split_t['idx_tr']), len(idx_split_t['idx_te']))
-   
-    # COSMO data splitting
-    idx_split_s = data_loader.split_cosmo(idx_split_t)
-    print(len(idx_split_s['idx_tr']), len(idx_split_s['idx_te']))
 
-    # PI data splitting
-    idx_split_s0 = data_loader.split_pi(idx_split_t)
-    print(len(idx_split_s0['idx_tr']), len(idx_split_s0['idx_te']))
+
