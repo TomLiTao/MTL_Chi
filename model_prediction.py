@@ -41,28 +41,20 @@ if __name__ == "__main__":
     model.to(cuda_opt)
     model.eval()  # Set the model to evaluation mode
     
-   # Assuming dname_p and dname_s are lists of column names
+   # dname_p and dname_s are lists of column names
     dname_p = descriptor_processor_pred.dname_p
     dname_s = descriptor_processor_pred.dname_s
 
-# Verify that dname_p and dname_s contain valid column names
-    valid_dname_p = [col for col in dname_p if col in descriptor_processor_pred.desc.columns]
-    valid_dname_s = [col for col in dname_s if col in descriptor_processor_pred.desc.columns]
-
-# Check for any missing columns
-    missing_columns_p = set(dname_p) - set(valid_dname_p)
-    print(set(dname_p))
-    missing_columns_s = set(dname_s) - set(valid_dname_s)
-
-    if missing_columns_p:
-        print(f"Missing columns in descriptor_processor_pred.desc for dname_p: {missing_columns_p}")
-    if missing_columns_s:
-        print(f"Missing columns in descriptor_processor_pred.desc for dname_s: {missing_columns_s}")
 
 # Construct tensors from the DataFrame using valid column names
-    XT_P_TE = torch.tensor(descriptor_processor_pred.desc[valid_dname_p].values.astype("float"), dtype=torch.float32, device=cuda_opt)
-    XT_S_TE = torch.tensor(descriptor_processor_pred.desc[valid_dname_s].values.astype("float"), dtype=torch.float32, device=cuda_opt)
+    XT_P_TE = torch.tensor(descriptor_processor_pred.desc[dname_p].values.astype("float"), dtype=torch.float32, device=cuda_opt)
+    XT_S_TE = torch.tensor(descriptor_processor_pred.desc[dname_s].values.astype("float"), dtype=torch.float32, device=cuda_opt)
     XT_T_TE = torch.tensor(temperature_processor_pred.temp.astype("float"), dtype=torch.float32, device=cuda_opt)
+    
+    # Reshape XT_P_TE to have shape (3, 330)
+    XT_P_TE = XT_P_TE[:3, :330]
+    XT_S_TE = XT_S_TE[:3, :337]
+    print(XT_T_TE.shape)
     # Perform the forward pass to get predictions
     with torch.no_grad():  # Disable gradient calculation for inference
         py_target_test = model(XT_P_TE, XT_S_TE, XT_T_TE)
@@ -74,7 +66,7 @@ if __name__ == "__main__":
     predictions_df = pd.DataFrame(tmp_mat)
 
     # Save the predictions to a CSV file
-    predictions_df.to_csv('/home/lulab/Projects/ml_for_polymer/MTL_Chi/predictions.csv', index=True)
+    predictions_df.to_csv('/home/lulab/Projects/ml_for_polymer/MTL_Chi/demo_data/predictions.csv', index=True)
 
 
 

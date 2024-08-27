@@ -130,8 +130,8 @@ class DataLoader_pred(DataLoader):
         """
         Load the data from CSV files into pandas DataFrames.
         """
-        self.data = pd.read_csv(f'{self.dir_load}/demo_smiles.csv', index_col=0)
-        self.desc = pd.read_csv(f'{self.dir_load}/demo_desc.csv', index_col=0)
+        self.data = pd.read_csv(f'{self.dir_load}/demo_smiles.csv')
+        self.desc = pd.read_csv(f'{self.dir_load}/demo_desc.csv')
 
     def load_indices(self):
         self.idx_pred = self.data.index.tolist()
@@ -153,8 +153,14 @@ if __name__ == "__main__":
             print(data_loader_pred.dname_p_rd)
             print(data_loader_pred.data.head())
             print(data_loader_pred.desc.head())
-            print(data_loader_pred.dname_p_ff[:5])
-            print(data_loader_pred.idx_pred)
+            # Print the column names
+            print(data_loader_pred.desc.columns.tolist())
+
+# Check if 'Polymer_mass_H' is in the columns
+            if 'Polymer_mass_H' in data_loader_pred.desc.columns:
+                print("Column 'Polymer_mass_H' is present.")
+            else:
+                print("Column 'Polymer_mass_H' is missing.")
 
 
 
