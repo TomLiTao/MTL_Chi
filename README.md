@@ -19,18 +19,22 @@ WARNING: The trained model using this sample code would not be directly comparab
 
 NOTE: We also provide a separated file of sample code for calculating the descriptors that are organized in the same format as the descriptor data stored in the sample_data folder.
 
-## Key packages
+## Dependencies
 
-The sample code has been tested on the following environment using a workstation with NVIDIA A100 GPU. 
+The sample code is run on a workstation with RTX4090 with the dependencies listed in environment.yml file.
+To install the dependencies listed in the `environment.yml` file, you can use the following command:
 
-* python == 3.8.13
-* jupyterlab == 3.3.4
-* pandas == 1.4.2
-* numpy == 1.22.3
-* scikit-learn == 1.0.2
-* scipy == 1.8.0
-* rdkit == 2020.09.5
-* xenonpy == 0.6.5
-* pytorch == 1.11.0
-* pickleshare == 0.7.5
-* cudatoolkit == 11.3.1
+```bash
+conda env create -f environment.yml
+```
+
+This command will create a new conda environment with the specified dependencies. Make sure you have Anaconda or Miniconda installed before running this command.
+
+Once the environment is created, you can activate it using:
+
+```bash
+conda activate <environment_name>
+```
+
+Replace `<environment_name>` with the name of the environment specified in the `environment.yml` file.
+
