@@ -9,8 +9,6 @@ from rdkit import Chem
 from datetime import datetime
 import matplotlib.pyplot as plt
 
-from IPython.core.interactiveshell import InteractiveShell
-InteractiveShell.ast_node_interactivity = "all"
 
 from xenonpy.descriptor import Fingerprints
 import xenonpy
@@ -22,11 +20,6 @@ from radonpy.ff.gaff2 import GAFF2
 from radonpy.ff.descriptor import FF_descriptor
 const.print_level = 1
 
-N_cyclic = 10 # number of repeating unit for the long polymer chain
-
-smis_single = ['*C(CC)CC*', '*c1ccc(C*)cc1'] # two examples of polymer SMILES
-
-smis_cyclic = [poly.make_cyclicpolymer(x, n=N_cyclic) for x in smis_single]
 
 data = pd.read_csv('sample_data/data_Chi.csv', index_col=0)
 smis_poly = []

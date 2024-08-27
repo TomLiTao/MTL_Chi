@@ -1,14 +1,14 @@
 ## Code structure
 
-The main code for implementing prediction can be found in the model/ folder. \\
-load_data contains the code for loading data from csv and pk files. \\
-data_preprocessing contains the normalization steps before input to the model. \\
-modelstructure contains the chi_model architecture. \\
-utils contains a few utility functions, including model saving and loading. \\
+The main code for implementing prediction can be found in the model/ folder.  
+load_data contains the code for loading data from csv and pk files.  
+data_preprocessing contains the normalization steps before feeding data into the model.  
+modelstructure contains the chi_model architecture.  
+utils contains a few utility functions, including model saving and loading.  
 
 ## Demo data
 
-Test smiles strings input can be found in demo_data folder.
+Test smiles strings input can be found in demo_data folder. The current implementation of the final step prediction is flawed.
 
 ## Dependencies
 
