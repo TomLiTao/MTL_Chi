@@ -112,6 +112,8 @@ class DataLoader:
         idx_split_s0 = {'idx_tr': self.data_PI.index[~idx], 'idx_te': self.data_PI.index[idx]}
         return idx_split_s0
     
+    
+    
 class DataLoader_pred(DataLoader):
     def __init__(self, dir_load):
         """
@@ -131,6 +133,12 @@ class DataLoader_pred(DataLoader):
         self.data = pd.read_csv(f'{self.dir_load}/demo_smiles.csv', index_col=0)
         self.desc = pd.read_csv(f'{self.dir_load}/demo_desc.csv', index_col=0)
 
+    def load_indices(self):
+        self.idx_pred = self.data.index.tolist()
+        
+        
+        
+        
 # Example usage
 if __name__ == "__main__":
             dir_load = os.path.join(os.getcwd(), 'demo_data')
@@ -139,11 +147,14 @@ if __name__ == "__main__":
             
             data_loader_pred.load_data()
             data_loader_pred.load_descriptions()
+            data_loader_pred.load_indices()
             
             # Access the loaded data
+            print(data_loader_pred.dname_p_rd)
             print(data_loader_pred.data.head())
             print(data_loader_pred.desc.head())
             print(data_loader_pred.dname_p_ff[:5])
+            print(data_loader_pred.idx_pred)
 
 
 

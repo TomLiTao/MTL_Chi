@@ -1,4 +1,4 @@
-,Polymer,Solvent,ps_pair
-0,C1=CC(=CC=C1C(=O)O)C(=O)O.C(CO)O,[Br]Br,C1=CC(=CC=C1C(=O)O)C(=O)O.C(CO)O_[Br]Br
-1,C1=CC(=CC=C1C(=O)O)C(=O)O.C(CO)O,[H]/C(Cl)=C(Cl)\Cl,C1=CC(=CC=C1C(=O)O)C(=O)O.C(CO)O_[H]/C(Cl)=C(Cl)\Cl
-2,C1=CC(=CC=C1C(=O)O)C(=O)O.C(CO)O,[H][C]([H])([N+]([O-])=O)[H],C1=CC(=CC=C1C(=O)O)C(=O)O.C(CO)O_[H][C]([H])([N+]([O-])=O)[H]
+,Polymer,Solvent,ps_pair,temp
+0,C1=CC(=CC=C1C(=O)O)C(=O)O.C(CO)O,[Br]Br,C1=CC(=CC=C1C(=O)O)C(=O)O.C(CO)O_[Br]Br,100.0
+1,C1=CC(=CC=C1C(=O)O)C(=O)O.C(CO)O,[H]/C(Cl)=C(Cl)\Cl,C1=CC(=CC=C1C(=O)O)C(=O)O.C(CO)O_[H]/C(Cl)=C(Cl)\Cl,100.0
+2,C1=CC(=CC=C1C(=O)O)C(=O)O.C(CO)O,[H][C]([H])([N+]([O-])=O)[H],C1=CC(=CC=C1C(=O)O)C(=O)O.C(CO)O_[H][C]([H])([N+]([O-])=O)[H],100.0

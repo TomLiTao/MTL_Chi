@@ -2,7 +2,7 @@ import numpy as np
 import pandas as pd
 from copy import deepcopy
 from xenonpy.datatools.transform import Scaler
-from .load_data import DataLoader
+from model.load_data import DataLoader, DataLoader_pred
 from sklearn.model_selection import GroupKFold
 
 class DescriptorProcessor:
@@ -82,6 +82,39 @@ class DescriptorProcessor:
         self.desc_s_s[self.dname_rd] = self.x_scaler.transform(self.desc_s_s[self.dname_rd])
         # Transform the descriptors in the Chi dataset using the fitted scaler
         self.desc_t_s[self.dname_rd] = self.x_scaler.transform(self.desc_t_s[self.dname_rd])
+        
+class DescriptorProcessor_pred:
+            def __init__(self, data_loader_pred):
+                """
+                Initialize the DescriptorProcessor_pred with an instance of DataLoader_pred.
+
+                Parameters:
+                data_loader_pred (DataLoader_pred): An instance of the DataLoader_pred class.
+                """
+                self.data_loader_pred = data_loader_pred
+                # Concatenate descriptor names from two sources
+                self.dname_rd = np.concatenate([data_loader_pred.dname_p_rd, data_loader_pred.dname_s_rd])
+                self.dname_ff = np.concatenate([data_loader_pred.dname_p_ff, data_loader_pred.dname_s_ff])
+                self.dname_p = np.concatenate([self.data_loader_pred.dname_p_ff, self.data_loader_pred.dname_p_rd])
+                self.dname_s = np.concatenate([self.data_loader_pred.dname_s_ff, self.data_loader_pred.dname_s_rd])
+                # Create deep copies of the descriptor DataFrames
+                self.desc = deepcopy(data_loader_pred.desc)
+                # Initialize a Scaler object with Yeo-Johnson transformation and standard scaling
+                self.x_scaler = Scaler().yeo_johnson().standard()
+
+            def fit_scaler(self):
+                self.temp_desc = self.desc[self.dname_rd]
+                # Fit the scaler on the concatenated training descriptors
+                _ = self.x_scaler.fit(self.temp_desc.drop_duplicates(keep='first'))
+                
+
+            def transform_descriptors(self):
+                """
+                Transform the descriptors in the demo datasets using the fitted scaler.
+                """
+                # Transform the descriptors in the PI dataset using the fitted scaler
+                self.desc[self.dname_rd] = self.x_scaler.transform(self.desc[self.dname_rd])
+  
         
 
 class YValueProcessor:
@@ -168,6 +201,39 @@ class TemperatureProcessor:
         _ = tempT_scaler.fit(self.temp_t.loc[self.data_loader.idx_split_t['idx_tr'], :])
         self.temp_t_s = tempT_scaler.transform(self.temp_t)
         
+class TemperatureProcessor_pred(TemperatureProcessor):
+    def __init__(self, data_loader_pred, temp_dim=1):
+        """
+        Initialize the TemperatureProcessor_pred with an instance of DataLoader_pred and temperature dimension.
+
+        Parameters:
+        data_loader_pred (DataLoader_pred): An instance of the DataLoader_pred class.
+        temp_dim (int): The dimension of the temperature transformation (default is 1).
+        """
+        super().__init__(data_loader_pred, temp_dim)
+        self.data_loader_pred = data_loader_pred
+
+    def process_temperatures(self):
+        """
+        Process and scale the temperature values.
+        """
+        # Transform temperature variables based on the specified dimension
+        if self.temp_dim == 1:
+            self.temp_s = 1 / (self.data_loader_pred.data['temp'] + 273.15)
+            self.temp_s.columns = ['T1']
+        elif self.temp_dim == 2:
+            self.temp_s = pd.concat([
+                1 / (self.data_loader_pred.data['temp'] + 273.15),
+                (self.data_loader_pred.data['temp'] + 273.15) ** -2
+            ], axis=1)
+            self.temp_s.columns = ['T1', 'T2']
+
+        # Scale the temperature variables
+        tempS_scaler = Scaler().standard()
+        self.temp_s = self.temp_s.values.reshape(-1, 1)  # Reshape to 2D array
+        _ = tempS_scaler.fit(self.temp_s)
+        self.temp = tempS_scaler.transform(self.temp_s)
+        
 class GroupKFoldSplitter:
     def __init__(self, data, target_column, group_column, idx_split, n_splits, random_seed=0):
         """
@@ -216,6 +282,34 @@ class GroupKFoldSplitter:
         tuple: A tuple containing two lists - training indices and validation indices.
         """
         return self.idx_trs, self.idx_vals
+# Example usage
+if __name__ == "__main__":
+    import os
+    dir_load = os.path.join(os.getcwd(), 'demo_data')
+
+    data_loader_pred = DataLoader_pred(dir_load)  
+
+    # Load the data using the DataLoader_pred instance
+    data_loader_pred.load_data()
+    data_loader_pred.load_descriptions()
+    data_loader_pred.load_indices()
+    
+
+    # Create an instance of DescriptorProcessor_pred
+    descriptor_processor_pred = DescriptorProcessor_pred(data_loader_pred)
+
+    # Fit the scaler on the descriptors
+    descriptor_processor_pred.fit_scaler()
+
+    # Transform the descriptors using the fitted scaler
+    descriptor_processor_pred.transform_descriptors()
+    
+    # Create an instance of TemperatureProcessor_pred
+    temperature_processor_pred = TemperatureProcessor_pred(data_loader_pred)
+
+    # Process and scale the temperature values
+    temperature_processor_pred.process_temperatures()
+    print(temperature_processor_pred.temp)
 
 
 
